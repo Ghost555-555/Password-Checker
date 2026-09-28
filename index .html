@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <title>Password Strength Checker</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Tajawal:wght@400;500;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        [dir="rtl"] * {
+            font-family: 'Tajawal', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background-color: #0E1116;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        .card {
+            background: #171E27;
+            border-radius: 20px;
+            padding: 40px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 0 20px rgba(62, 214, 197, 0.35);
+        }
+
+        .lang-btn {
+            position: fixed;
+            top: 24px;
+            inset-inline-end: 24px;
+            background: transparent;
+            border: 2px solid #3ED6C5;
+            color: #3ED6C5;
+            padding: 0.5rem 1.2rem;
+            border-radius: 2rem;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: 0.3s ease;
+        }
+
+        .lang-btn:hover {
+            background: #3ED6C5;
+            color: black;
+        }
+
+        h1 {
+            font-size: 1.6rem;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        h1 span {
+            color: #3ED6C5;
+        }
+
+        .input-wrap {
+            position: relative;
+            margin-bottom: 12px;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px 44px 14px 16px;
+            background: #1B2430;
+            border: 2px solid #2A3542;
+            border-radius: 10px;
+            color: white;
+            font-size: 1rem;
+            transition: border-color 0.2s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #3ED6C5;
+        }
+
+        .toggle-eye {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #777;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        [dir="rtl"] .toggle-eye {
+            left: auto;
+            right: 14px;
+        }
+
+        .toggle-eye:hover {
+            color: #3ED6C5;
+        }
+
+        .common-warning {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            background: rgba(231, 76, 60, 0.12);
+            border: 1px solid rgba(231, 76, 60, 0.4);
+            color: #e74c3c;
+            font-size: 0.85rem;
+            padding: 10px 14px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+        }
+
+        .common-warning.show {
+            display: flex;
+        }
+
+        .strength-bar {
+            width: 100%;
+            height: 8px;
+            background: #1B2430;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .strength-fill {
+            height: 100%;
+            width: 0%;
+            border-radius: 10px;
+            transition: width 0.3s ease, background-color 0.3s ease;
+        }
+
+        .strength-label {
+            text-align: center;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #777;
+        }
+
+        .crack-time {
+            text-align: center;
+            font-size: 0.85rem;
+            color: #555;
+            margin-bottom: 24px;
+        }
+
+        .crack-time span {
+            color: #ccc;
+            font-weight: 600;
+        }
+
+        .criteria {
+            list-style: none;
+        }
+
+        .criteria li {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            color: #777;
+            font-size: 0.9rem;
+            transition: color 0.2s ease;
+        }
+
+        .criteria li i.fa-circle-check {
+            width: 18px;
+        }
+
+        .criteria li.met {
+            color: #eee;
+        }
+
+        .criteria li.met i.fa-circle-check {
+            color: #2ecc71;
+        }
+
+        .criteria li:not(.met) i.fa-circle-check {
+            color: #555;
+        }
+
+    </style>
+</head>
+<body>
+
+    <button class="lang-btn" id="langBtn">العربية</button>
+
+    <div class="card">
+        <h1 id="title">Password <span>Strength Checker</span></h1>
+
+        <div class="input-wrap">
+            <input type="password" id="pwd" placeholder="Type a password...">
+            <i class="fa-solid fa-eye toggle-eye" id="eyeIcon"></i>
+        </div>
+
+        <p class="common-warning" id="commonWarning"><i class="fa-solid fa-triangle-exclamation"></i> <span id="warningText">This is one of the most common leaked passwords — attackers try these first.</span></p>
+
+        <div class="strength-bar">
+            <div class="strength-fill" id="strengthFill"></div>
+        </div>
+        <p class="strength-label" id="strengthLabel">Start typing...</p>
+        <p class="crack-time" id="crackTime"></p>
+
+        <ul class="criteria">
+            <li id="c-length"><i class="fa-solid fa-circle-check"></i> <span>At least 8 characters</span></li>
+            <li id="c-upper"><i class="fa-solid fa-circle-check"></i> <span>One uppercase letter</span></li>
+            <li id="c-lower"><i class="fa-solid fa-circle-check"></i> <span>One lowercase letter</span></li>
+            <li id="c-number"><i class="fa-solid fa-circle-check"></i> <span>One number</span></li>
+            <li id="c-special"><i class="fa-solid fa-circle-check"></i> <span>One special character</span></li>
+        </ul>
+    </div>
+
+    <script>
+        const pwdInput = document.getElementById('pwd');
+        const eyeIcon = document.getElementById('eyeIcon');
+        const strengthFill = document.getElementById('strengthFill');
+        const strengthLabel = document.getElementById('strengthLabel');
+        const langBtn = document.getElementById('langBtn');
+        let currentLang = 'en';
+
+        // ===== قاموس الترجمة - كل النصوص الثابتة والديناميكية بمكان واحد =====
+        const t = {
+            en: {
+                titlePlain: 'Password', titleSpan: 'Strength Checker',
+                placeholder: 'Type a password...',
+                startTyping: 'Start typing...',
+                weak: 'Weak', medium: 'Medium', strong: 'Strong', veryStrong: 'Very Strong',
+                weakCommon: 'Weak (Common Password)',
+                crackPrefix: 'Estimated time to crack:', instantly: 'Instantly',
+                warning: 'This is one of the most common leaked passwords — attackers try these first.',
+                criteria: ['At least 8 characters', 'One uppercase letter', 'One lowercase letter', 'One number', 'One special character'],
+                units: { second: 'second', minute: 'minute', hour: 'hour', day: 'day', year: 'year', century: 'century' }
+            },
+            ar: {
+                titlePlain: 'فحص', titleSpan: 'قوة كلمة المرور',
+                placeholder: 'اكتب كلمة مرور...',
+                startTyping: 'ابدأ الكتابة...',
+                weak: 'ضعيفة', medium: 'متوسطة', strong: 'قوية', veryStrong: 'قوية جداً',
+                weakCommon: 'ضعيفة (كلمة مرور شائعة)',
+                crackPrefix: 'الوقت المتوقع للاختراق:', instantly: 'فوراً',
+                warning: 'هذي من أكثر كلمات المرور المسربة شيوعاً — المهاجمون يجربونها أول شي.',
+                criteria: ['8 أحرف على الأقل', 'حرف كبير واحد', 'حرف صغير واحد', 'رقم واحد', 'رمز خاص واحد'],
+                units: { second: 'ثانية', minute: 'دقيقة', hour: 'ساعة', day: 'يوم', year: 'سنة', century: 'قرن' }
+            }
+        };
+
+        const criteriaIds = ['c-length', 'c-upper', 'c-lower', 'c-number', 'c-special'];
+
+        // إظهار/إخفاء كلمة المرور
+        eyeIcon.addEventListener('click', () => {
+            const isPassword = pwdInput.type === 'password';
+            pwdInput.type = isPassword ? 'text' : 'password';
+            eyeIcon.classList.toggle('fa-eye');
+            eyeIcon.classList.toggle('fa-eye-slash');
+        });
+
+        const checks = [
+            { id: 'c-length',  test: (v) => v.length >= 8 },
+            { id: 'c-upper',   test: (v) => /[A-Z]/.test(v) },
+            { id: 'c-lower',   test: (v) => /[a-z]/.test(v) },
+            { id: 'c-number',  test: (v) => /[0-9]/.test(v) },
+            { id: 'c-special', test: (v) => /[^A-Za-z0-9]/.test(v) },
+        ];
+
+        const commonPasswords = [
+            '123456', 'password', '123456789', '12345678', '12345', 'qwerty',
+            'abc123', '111111', '123123', 'admin', 'letmein', 'welcome',
+            'monkey', 'football', 'iloveyou', '1234567', 'password1',
+            '1234', '000000', 'qwerty123', 'dragon', 'master', 'ninja'
+        ];
+
+        pwdInput.addEventListener('input', () => {
+            const value = pwdInput.value;
+            let score = 0;
+
+            checks.forEach(check => {
+                const passed = check.test(value);
+                document.getElementById(check.id).classList.toggle('met', passed);
+                if (passed) score++;
+            });
+
+            const isCommon = commonPasswords.includes(value.toLowerCase());
+            document.getElementById('commonWarning').classList.toggle('show', isCommon);
+
+            if (isCommon) {
+                strengthFill.style.width = '100%';
+                strengthFill.style.backgroundColor = '#e74c3c';
+                strengthLabel.textContent = t[currentLang].weakCommon;
+                strengthLabel.style.color = '#e74c3c';
+                document.getElementById('crackTime').innerHTML =
+                    `${t[currentLang].crackPrefix} <span>${t[currentLang].instantly}</span>`;
+            } else {
+                updateBar(score, value.length);
+                updateCrackTime(value);
+            }
+        });
+
+        function updateBar(score, length) {
+            const percent = (score / checks.length) * 100;
+            strengthFill.style.width = percent + '%';
+
+            if (length === 0) {
+                strengthFill.style.width = '0%';
+                strengthLabel.textContent = t[currentLang].startTyping;
+                strengthLabel.style.color = '#777';
+                return;
+            }
+
+            if (score <= 1) {
+                strengthFill.style.backgroundColor = '#e74c3c';
+                strengthLabel.textContent = t[currentLang].weak;
+                strengthLabel.style.color = '#e74c3c';
+            } else if (score <= 3) {
+                strengthFill.style.backgroundColor = '#f1c40f';
+                strengthLabel.textContent = t[currentLang].medium;
+                strengthLabel.style.color = '#f1c40f';
+            } else if (score === 4) {
+                strengthFill.style.backgroundColor = '#2ecc71';
+                strengthLabel.textContent = t[currentLang].strong;
+                strengthLabel.style.color = '#2ecc71';
+            } else {
+                strengthFill.style.backgroundColor = '#27ae60';
+                strengthLabel.textContent = t[currentLang].veryStrong;
+                strengthLabel.style.color = '#27ae60';
+            }
+        }
+
+        function estimateCrackTime(value) {
+            if (value.length === 0) return '';
+
+            let charsetSize = 0;
+            if (/[a-z]/.test(value)) charsetSize += 26;
+            if (/[A-Z]/.test(value)) charsetSize += 26;
+            if (/[0-9]/.test(value)) charsetSize += 10;
+            if (/[^A-Za-z0-9]/.test(value)) charsetSize += 32;
+
+            const combinations = Math.pow(charsetSize, value.length);
+            const guessesPerSecond = 1e9;
+            const seconds = combinations / guessesPerSecond;
+
+            return formatDuration(seconds);
+        }
+
+        function formatDuration(seconds) {
+            if (seconds < 1) return t[currentLang].instantly;
+
+            const u = t[currentLang].units;
+            const units = [
+                { label: u.second, secs: 1 },
+                { label: u.minute, secs: 60 },
+                { label: u.hour, secs: 3600 },
+                { label: u.day, secs: 86400 },
+                { label: u.year, secs: 31536000 },
+                { label: u.century, secs: 3153600000 },
+            ];
+
+            for (let i = units.length - 1; i >= 0; i--) {
+                const value = seconds / units[i].secs;
+                if (value >= 1) {
+                    const rounded = value > 1000 ? value.toExponential(1) : Math.round(value);
+                    return `${rounded} ${units[i].label}${rounded == 1 ? '' : 's'}`;
+                }
+            }
+            return t[currentLang].instantly;
+        }
+
+        function updateCrackTime(value) {
+            const crackTimeEl = document.getElementById('crackTime');
+            const estimate = estimateCrackTime(value);
+            crackTimeEl.innerHTML = estimate ? `${t[currentLang].crackPrefix} <span>${estimate}</span>` : '';
+        }
+
+        // ===== تبديل اللغة =====
+        function applyStaticText() {
+            const lang = t[currentLang];
+            document.getElementById('title').innerHTML = `${lang.titlePlain} <span>${lang.titleSpan}</span>`;
+            pwdInput.placeholder = lang.placeholder;
+            document.getElementById('warningText').textContent = lang.warning;
+            criteriaIds.forEach((id, i) => {
+                document.querySelector(`#${id} span`).textContent = lang.criteria[i];
+            });
+        }
+
+        langBtn.addEventListener('click', () => {
+            currentLang = currentLang === 'en' ? 'ar' : 'en';
+            document.documentElement.setAttribute('lang', currentLang);
+            document.documentElement.setAttribute('dir', currentLang === 'ar' ? 'rtl' : 'ltr');
+            langBtn.textContent = currentLang === 'en' ? 'العربية' : 'English';
+            applyStaticText();
+            // نعيد حساب النصوص الديناميكية (القوة والوقت) بنفس كلمة المرور الحالية باللغة الجديدة
+            pwdInput.dispatchEvent(new Event('input'));
+        });
+    </script>
+
+</body>
+</html>
